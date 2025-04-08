@@ -1,35 +1,22 @@
-import { ClientProviderOptions, Transport } from '@nestjs/microservices';
+// libs/config/grpc-client-loader.ts
+import { Transport, ClientProviderOptions } from '@nestjs/microservices';
 import { join } from 'path';
-import * as dotenv from 'dotenv';
+import axios from 'axios';
 
-dotenv.config();
-
-export const grpcClientOptions: ClientProviderOptions[] = [
-  {
-    name: 'PAYMENT_PACKAGE',
+export const loadGrpcClient = async (
+  name: string,
+  service: string,
+  protoPath: string,
+  packageName: string,
+): Promise<ClientProviderOptions> => {
+  const { data: url } = await axios.get(`http://localhost:3000/discover?service=${service}`);
+  return {
+    name,
     transport: Transport.GRPC,
     options: {
-      package: 'payment',
-      protoPath: join(__dirname, '../../libs/proto/payment.proto'),
-      url: `${process.env.PAYMENT_HOST}:${process.env.PAYMENT_PORT}`
+      package: packageName,
+      protoPath,
+      url,
     },
-  },
-  // {
-  //   name: 'MASTER_PACKAGE',
-  //   transport: Transport.GRPC,
-  //   options: {
-  //     package: 'master',
-  //     protoPath: join(__dirname, '..', 'proto', 'master.proto'),
-  //     url: `${process.env.MASTER_HOST}:${process.env.MASTER_PORT}`,
-  //   },
-  // },
-  // {
-  //   name: 'NOTIFICATION_PACKAGE',
-  //   transport: Transport.GRPC,
-  //   options: {
-  //     package: 'notification',
-  //     protoPath: join(__dirname, '..', 'proto', 'notification.proto'),
-  //     url: `${process.env.NOTIFICATION_HOST}:${process.env.NOTIFICATION_PORT}`,
-  //   },
-  // },
-];
+  };
+};
